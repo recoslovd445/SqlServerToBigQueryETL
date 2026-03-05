@@ -1,20 +1,19 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 8080
-# Esta línea es VITAL para que Google Cloud Run encuentre tu app
 ENV ASPNETCORE_URLS=http://+:8080
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-# Copiamos solo el proyecto para restaurar dependencias
-# (Como el Dockerfile está al lado del .csproj, la ruta es directa)
-COPY ["SqlServerToBigQueryETL.csproj", "./"]
-RUN dotnet restore "SqlServerToBigQueryETL.csproj"
+# CORRECCIÓN: Indicamos la ruta de la carpeta para encontrar el .csproj
+COPY ["SqlServerToBigQueryETL/SqlServerToBigQueryETL.csproj", "SqlServerToBigQueryETL/"]
+RUN dotnet restore "SqlServerToBigQueryETL/SqlServerToBigQueryETL.csproj"
 
-# Copiamos todo lo demás y compilamos
+# Copiamos todo el contenido del repositorio
 COPY . .
+WORKDIR "/src/SqlServerToBigQueryETL"
 RUN dotnet build "SqlServerToBigQueryETL.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
