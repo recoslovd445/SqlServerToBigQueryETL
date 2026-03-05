@@ -1,5 +1,4 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
@@ -7,15 +6,17 @@ ENV ASPNETCORE_URLS=http://+:8080
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["SqlServerToBigQueryETL/SqlServerToBigQueryETL.csproj", "SqlServerToBigQueryETL/"]
-RUN dotnet restore "SqlServerToBigQueryETL/SqlServerToBigQueryETL.csproj"
+
+# CORRECCIÓN: Como el Dockerfile está al lado del .csproj, no necesitamos la carpeta en la ruta
+COPY ["SqlServerToBigQueryETL.csproj", "./"]
+RUN dotnet restore "SqlServerToBigQueryETL.csproj"
+
 COPY . .
-WORKDIR "/src/SqlServerToBigQueryETL"
-RUN dotnet build "./SqlServerToBigQueryETL.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "SqlServerToBigQueryETL.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./SqlServerToBigQueryETL.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "SqlServerToBigQueryETL.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
