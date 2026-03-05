@@ -7,11 +7,11 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-# CORRECCIÓN: Indicamos la ruta de la carpeta para encontrar el .csproj
+# ESTA ES LA CLAVE: Buscamos el archivo dentro de la carpeta del proyecto
 COPY ["SqlServerToBigQueryETL/SqlServerToBigQueryETL.csproj", "SqlServerToBigQueryETL/"]
 RUN dotnet restore "SqlServerToBigQueryETL/SqlServerToBigQueryETL.csproj"
 
-# Copiamos todo el contenido del repositorio
+# Copiamos todo lo demás
 COPY . .
 WORKDIR "/src/SqlServerToBigQueryETL"
 RUN dotnet build "SqlServerToBigQueryETL.csproj" -c $BUILD_CONFIGURATION -o /app/build
